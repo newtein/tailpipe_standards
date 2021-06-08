@@ -1,0 +1,18 @@
+{
+"database": [["phily_2000_2010", "phily_2011_2019"], "la"],
+"county": ["Philadelphia County", "Los Angeles County"],
+"phily_2000_2010": {
+    "start_year": 1999,
+    "end_year": 2010
+    },
+"phily_2011_2019": {
+    "start_year": 2011,
+    "end_year": 2019
+    },
+"pollutant": ["CO", "NOx"],
+"start_year": 1999,
+"end_year": 2019,
+"plot_type": "line",
+"plot_count": "single",
+"plot_distribution": "monthly"
+}

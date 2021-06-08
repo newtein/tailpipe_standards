@@ -1,0 +1,9 @@
+{
+"database": ["test_run"],
+"pollutant": ["CO", "NOx"],
+"start_year": 2018,
+"end_year": 2021,
+"plot_type": "line",
+"plot_count": "single",
+"plot_distribution": "monthly"
+}

@@ -1,0 +1,24 @@
+{
+"unique_name": "EPA_vs_CARB_NET_GHGs_2010_2019",
+"county": ["Philadelphia County",
+            "Los Angeles County",
+            "Dallas County",
+            "Cook County"],
+"state": ["Pennsylvania", "California", "Texas", "Illinois"],
+"EPA": ["Dallas County",
+            "Cook County"],
+"CARB": ["Philadelphia County",
+            "Los Angeles County"],
+"database": ["phily_2011_2019",
+	"la",
+	"dallas_2011_2019",
+	"cook_2011_2019"
+			],
+"pollutant": ["Methane (CH4)", "Atmospheric CO2", "CO2 Equivalent", "Total Energy"],
+"start_year": 2011,
+"end_year": 2019,
+"plot_type": "line",
+"plot_count": "single",
+"plot_distribution": "monthly",
+"legend_loc": "upper left"
+}

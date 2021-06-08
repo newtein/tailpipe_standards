@@ -1,0 +1,11 @@
+{
+"unique_name": 'LA Sanity check',
+"database": ["la_2015_2019", "la"],
+"county": ["LA new", "LA old"],
+"pollutant": ["CO", "NOx"],
+"start_year": 2015,
+"end_year": 2019,
+"plot_type": "line",
+"plot_count": "single",
+"plot_distribution": "monthly"
+}

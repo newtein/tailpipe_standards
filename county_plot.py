@@ -10,13 +10,14 @@ from geo_class import GeoClass
 import seaborn as sns
 import math
 from get_cmap import GetCmap
+from scipy import stats
 
 
 class CountyPlot:
     def __init__(self, config, df_wrapper, title=None):
         self.df_wrapper = df_wrapper
         self.config = config
-        self.title = title
+        self.title = "{} ({}-{})".format(title, config.start_year, config.end_year)
 
     def get_rows_and_cols_for_counties(self):
         pollutants = len(self.config.pollutant_list)
@@ -56,8 +57,14 @@ class CountyPlot:
     def normalize(self, df, col):
         return (df[col] - df[col].mean()) / df[col].std()
 
+    def regression_line(self, x, y):
+        x_vals = np.array(list(range(1, len(x)+1)))
+        res = stats.linregress(x_vals, y)
+        y_vals = res.intercept + res.slope * x_vals
+        return x, y_vals
+
     def plot_counties(self):
-        sns.set_style("whitegrid")
+        sns.set_style("white")
         df_wrapper = copy(self.df_wrapper)
         rows, cols = self.get_rows_and_cols_for_counties()
         posCord = [(i, j) for i in range(0, rows) for j in range(0, cols)]
@@ -70,7 +77,7 @@ class CountyPlot:
 
         for index, pollutant in enumerate(self.config.pollutant_list):
             ax = plt.subplot(gs[posCord[index][0], posCord[index][1]])
-            ax.text(-0.065, 0.98, self.get_annot(index), transform=ax.transAxes, size=15, color='black')
+            ax.text(-0.07, 0.98, self.get_annot(index), transform=ax.transAxes, size=15, color='black')
             for db_idx, db in enumerate(df_wrapper):
                 pollutant_df = df_wrapper.get(db)
                 pollutant_df['date'] = pollutant_df.apply(self.make_date, axis=1)
@@ -82,8 +89,11 @@ class CountyPlot:
                 plt.plot(x, y, color=cmap, linewidth=0.8, linestyle='--')
                 plt.scatter(x, y, s=1, color=cmap)
                 plt.plot([], [], marker="o", ms=10, ls="", color=cmap, label=self.get_image_title(county_name))
+                reg_x, reg_y = self.regression_line(x, y)
+                plt.plot(reg_x, reg_y, color=cmap, linewidth=0.6, linestyle="dotted")
+
             if index == self.config.legend_pos:
-                plt.legend(loc=self.config.legend_loc)
+                plt.legend(loc=self.config.legend_loc, frameon=False)
             # plt.xlim(xa, xb)
             # plt.ylim(ya - 0.5, yb + 0.5)
             if index % 2 == 0:
@@ -93,5 +103,7 @@ class CountyPlot:
         if self.title:
             plt.suptitle(self.title, fontsize=22, y=1.05)
             # plt.subplots_adjust(top=0.85)
-        plt.savefig(OUTPUT_FIG_DIR + "/county_wise_" + self.config.get_imagename(), bbox_inches='tight')
+        figname = self.title.replace(" ", "_")+".png"
+        # plt.savefig(OUTPUT_FIG_DIR + "/county_wise_" + self.config.get_imagename(), bbox_inches='tight')
+        plt.savefig(OUTPUT_FIG_DIR + "/" + figname, bbox_inches='tight')
         logging.info("Figure is saved.")

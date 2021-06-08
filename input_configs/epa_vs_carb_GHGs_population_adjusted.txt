@@ -1,5 +1,5 @@
 {
-"unique_name": "NET_CRITERIA_2000_2019",
+"unique_name": "NET_GHGs_2010_2019_pop_adjusted",
 "county": ["Philadelphia County",
             "Los Angeles County",
             "Dallas County",
@@ -16,7 +16,7 @@
 	["cook_1999_2010","cook_2011_2019"]
 			],
 "phily_2000_2010": {
-    "start_year": 2000,
+    "start_year": 2010,
     "end_year": 2010
     },
 "phily_2011_2019": {
@@ -24,7 +24,7 @@
     "end_year": 2019
     },
 "la": {
-    "start_year": 2000,
+    "start_year": 2010,
     "end_year": 2014
     },
 "la_2015_2019": {
@@ -32,7 +32,7 @@
     "end_year": 2019
     },
  "dallas_2000_2010": {
-    "start_year": 2000,
+    "start_year": 2010,
     "end_year": 2010
     },
 "dallas_2011_2019": {
@@ -40,21 +40,21 @@
     "end_year": 2019
     },
   "cook_1999_2010": {
-    "start_year": 2000,
+    "start_year": 2010,
     "end_year": 2010
     },
 "cook_2011_2019": {
     "start_year": 2011,
     "end_year": 2019
     },
-"pollutant": ["CO", "NOx", "VOC", "Total Gas HC"],
-"start_year": 1999,
+"pollutant": ["Methane (CH4)", "Atmospheric CO2", "CO2 Equivalent", "N2O"],
+"start_year": 2010,
 "end_year": 2019,
 "plot_type": "line",
 "plot_count": "single",
 "plot_distribution": "monthly",
-"legend_loc": "upper right",
-"legend_pos":1,
-"figure_title": "Criteria Pollutants",
-"population_adjusted": False
+"legend_loc": "upper left",
+"legend_pos":0,
+"figure_title": "GHGs",
+"population_adjusted": True
 }

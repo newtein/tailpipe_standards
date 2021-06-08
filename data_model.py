@@ -5,6 +5,7 @@ import os
 from constants import *
 import logging
 from get_population import USPopulation
+from copy import deepcopy
 
 
 class DataModel:
@@ -67,8 +68,9 @@ class DataModel:
             logging.info("File {} written.".format(w_filename))
         return county_dfs
 
-    def adjust_population(self, df_wrapper):
+    def adjust_population(self, _df_wrapper):
         adjusted_df_wrapper = {}
+        df_wrapper = deepcopy(_df_wrapper)
         for county_name in df_wrapper:
             county_index = self.config.county.index(county_name)
             state_name = self.config.state[county_index]

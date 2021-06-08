@@ -54,7 +54,7 @@ class EmissionPlot:
         return "{})".format(chr(97+int))
 
     def plot_pollutants(self):
-        sns.set_style("whitegrid")
+        sns.set_style("white")
         df_wrapper = copy(self.df_wrapper)
         rows, cols = self.get_rows_and_cols_for_pollutants()
         posCord = [(i, j) for i in range(0, rows) for j in range(0, cols)]

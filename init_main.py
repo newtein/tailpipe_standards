@@ -62,7 +62,7 @@ if __name__ == "__main__":
         df_wrapper, population_adjusted_df_wrapper = get_pollutants_df()
         plot_graphs(df_wrapper, title=config.figure_title)
         if config.population_adjusted:
-            plot_graphs(population_adjusted_df_wrapper, title=config.figure_title)
+            plot_graphs(population_adjusted_df_wrapper, title=config.figure_title+" per 1000 people")
 
 
 

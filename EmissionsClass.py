@@ -12,9 +12,9 @@ class EmissionClass:
         # self.population_lookup = obj.get(county_name)
 
     def calculate_emission_by_pollutant_monthly(self, start_year, end_year, pollutant_id, pollutant_name):
-        query = """SELECT yearID, monthID, pollutantID, SUM(emissionQuant) as emission FROM `movesoutput` WHERE pollutantID={} and yearID BETWEEN {} and {} group by yearID, monthID, pollutantID"""
+        query = """SELECT stateID, countyID, yearID, monthID, pollutantID, SUM(emissionQuant) as emission FROM `movesoutput` WHERE pollutantID={} and yearID BETWEEN {} and {} group by yearID, monthID, pollutantID"""
         query = query.format(pollutant_id, start_year, end_year)
-        alias = ['yearID', 'monthID', 'pollutantID', 'emission']
+        alias = ['stateID', 'countyID', 'yearID', 'monthID', 'pollutantID', 'emission']
         return list(self.core_obj.execute_query(query, alias))
 
     def test(self):

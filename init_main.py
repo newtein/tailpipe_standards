@@ -9,6 +9,8 @@ from data_model import DataModel
 from emission_plot import EmissionPlot
 from county_plot import CountyPlot
 import pandas as pd
+from county_boxplot import CountyBoxplot
+from get_ambient_air_pollution_df import AmbientAirDf
 
 logging = LocalLogger().setup()
 
@@ -35,10 +37,19 @@ def get_pollutants_df():
         logging.info('Analysis on database {} completed.'.format(config.working_db))
         dfs[db] = df
     dfs = data_obj.combine_dfs(dfs)
-    population_adjusted_wrapper = None
+    # population_adjusted_wrapper = None
+    # if config.population_adjusted:
+    #     population_adjusted_wrapper = data_obj.adjust_population(dfs)
+    # return dfs, population_adjusted_wrapper
+    return dfs
+
+
+def adjust_and_plot(_df_wrapper, title=None):
+    data_obj = DataModel(config)
+    plot_graphs(_df_wrapper, title=title)
     if config.population_adjusted:
-        population_adjusted_wrapper = data_obj.adjust_population(dfs)
-    return dfs, population_adjusted_wrapper
+        population_adjusted_wrapper = data_obj.adjust_population(_df_wrapper)
+        plot_graphs(population_adjusted_wrapper, title=title+" per 1000 people")
 
 
 def plot_graphs(_df_wrapper, title=None):
@@ -46,6 +57,9 @@ def plot_graphs(_df_wrapper, title=None):
     eplot_obj.plot_pollutants()
     cplot_obj = CountyPlot(config, _df_wrapper, title=title)
     cplot_obj.plot_counties()
+    if config.boxplot:
+        cbplt_obj = CountyBoxplot(config, _df_wrapper, title=title)
+        cbplt_obj.plot_counties()
 
 
 if __name__ == "__main__":
@@ -55,14 +69,22 @@ if __name__ == "__main__":
         logging.error("Please supply the configuration filename. Note: Configuration file should be present in "
                       "input_configs")
     finally:
-        input_config_path = os.path.join(INPUT_DIR, sys.argv[1])
+        # input_config_path = os.path.join(INPUT_DIR, sys.argv[1])
+        input_config_path = sys.argv[1]
         config = ConfigReader(input_config_path)
         pollutant_obj = Pollutant()
         logging.info(pollutant_obj.sanitize(config.pollutant_list))
-        df_wrapper, population_adjusted_df_wrapper = get_pollutants_df()
-        plot_graphs(df_wrapper, title=config.figure_title)
-        if config.population_adjusted:
-            plot_graphs(population_adjusted_df_wrapper, title=config.figure_title+" per 1000 people")
+        ambient_obj = AmbientAirDf(config)
+        ambient_df_wrapper = ambient_obj.get_ambient_pollution_df()
+        ambient_df_wrapper = ambient_obj.standardized_ambient_df(ambient_df_wrapper)
+        title = config.figure_title + " Ambient Air"
+        adjust_and_plot(ambient_df_wrapper, title=title)
+        df_wrapper = get_pollutants_df()
+        title = config.figure_title + " Onroad"
+        adjust_and_plot(df_wrapper, title=title)
+        # plot_graphs(df_wrapper, title=config.figure_title)
+        # if config.population_adjusted:
+        #     plot_graphs(population_adjusted_df_wrapper, title=config.figure_title+" per 1000 people")
 
 
 

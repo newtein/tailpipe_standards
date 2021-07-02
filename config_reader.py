@@ -5,6 +5,7 @@ class ConfigReader:
         self.input_config = eval(open(filename, "r").read())
         self.start_year, self.end_year = self.input_config.get("start_year"), self.input_config.get("end_year")
         self.pollutant_list = self.input_config.get("pollutant")
+        self.epa_pollutant_code = self.input_config.get("epa_pollutant_code")
         self.db = self.input_config.get("database")
         self.county = self.input_config.get("county")
         self.state = self.input_config.get("state")
@@ -17,6 +18,7 @@ class ConfigReader:
         self.population_adjusted = self.input_config.get("population_adjusted", False)
         self.figure_title = self.input_config.get("figure_title", None)
         self.legend_pos = self.input_config.get("legend_pos", 0)
+        self.boxplot = self.input_config.get("boxplot", None)
 
     def unwrap_dbs(self):
         db = []

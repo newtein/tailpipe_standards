@@ -50,17 +50,19 @@ class DataModel:
 
     def combine_dfs(self, dfs):
         county_dfs = {}
-        for index, county in enumerate(self.config.county):
+        for index, geo_info in enumerate(zip(self.config.county, self.config.state)):
+            county, state = geo_info[0], geo_info[1]
+            df_key = get_df_key(county, state)
             db_info = self.config.db[index]
             if type(db_info) == list:
                 combined_county_df = pd.DataFrame()
                 for db in db_info:
                     # print("combining {} / {}".format(db, db_info))
                     combined_county_df = combined_county_df.append(dfs.get(db))
-                county_dfs[county] = combined_county_df
+                county_dfs[df_key] = combined_county_df
                 #print(combined_county_df[combined_county_df['year'] == 1999])
             else:
-                county_dfs[county] = dfs.get(db_info)
+                county_dfs[df_key] = dfs.get(db_info)
         for county in county_dfs:
             df = county_dfs.get(county)
             w_filename = os.path.join(OUTPUT_TABLE_DIR, self.config.get_filename(c=county))
@@ -71,11 +73,12 @@ class DataModel:
     def adjust_population(self, _df_wrapper):
         adjusted_df_wrapper = {}
         df_wrapper = deepcopy(_df_wrapper)
-        for county_name in df_wrapper:
+        for geo_info in df_wrapper:
+            county_name, state_name = split_df_key(geo_info)
             county_index = self.config.county.index(county_name)
             state_name = self.config.state[county_index]
             population_lookup = self.population_obj.get(county_name, state_name)
-            df = df_wrapper.get(county_name)
+            df = df_wrapper.get(geo_info)
             for pollutant in self.config.pollutant_list:
                 t = []
                 for index, row in df.iterrows():
@@ -90,4 +93,7 @@ class DataModel:
                 df[pollutant] = t
             adjusted_df_wrapper[county_name] = df
         return adjusted_df_wrapper
+
+
+
 

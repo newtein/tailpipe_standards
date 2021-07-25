@@ -4,8 +4,9 @@ from get_population import USPopulation
 
 
 class EmissionClass:
-    def __init__(self, database, county_name):
-        self.database = database
+    def __init__(self, config, county_name):
+        self.config = config
+        self.database = config.working_db
         self.movesouput_table = "movesoutput"
         self.core_obj = CoreFunctions(self.database, self.movesouput_table)
         obj = USPopulation()
@@ -16,6 +17,19 @@ class EmissionClass:
         query = query.format(pollutant_id, start_year, end_year)
         alias = ['stateID', 'countyID', 'yearID', 'monthID', 'pollutantID', 'emission']
         return list(self.core_obj.execute_query(query, alias))
+
+    def calculate_emission_by_pollutant_yearly(self, start_year, end_year, pollutant_id, pollutant_name):
+        query = """SELECT stateID, countyID, yearID, pollutantID, SUM(emissionQuant) as emission FROM `movesoutput` WHERE pollutantID={} and yearID BETWEEN {} and {} group by yearID, pollutantID"""
+        query = query.format(pollutant_id, start_year, end_year)
+        alias = ['stateID', 'countyID', 'yearID', 'pollutantID', 'emission']
+        print(query)
+        return list(self.core_obj.execute_query(query, alias))
+
+    def get_emission(self, start_year, end_year, pollutant_id, pollutant_name):
+        if self.config.plot_distribution == "monthly":
+            return self.calculate_emission_by_pollutant_monthly(start_year, end_year, pollutant_id, pollutant_name)
+        elif self.config.plot_distribution == "annual":
+            return self.calculate_emission_by_pollutant_yearly(start_year, end_year, pollutant_id, pollutant_name)
 
     def test(self):
         where_payload = {

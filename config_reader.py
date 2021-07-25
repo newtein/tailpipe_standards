@@ -1,3 +1,6 @@
+import os
+from constants import *
+import math
 
 
 class ConfigReader:
@@ -13,12 +16,30 @@ class ConfigReader:
         self.carb_county = self.input_config.get("CARB")
         self.plot_distribution = self.input_config.get("plot_distribution")
         self.working_db = self.unwrap_dbs()[0]
-        self.unique_name = self.input_config.get("unique_name")
+        self.unique_name = self.input_config.get("unique_name").replace(" ", "_")
         self.legend_loc = self.input_config.get("legend_loc")
         self.population_adjusted = self.input_config.get("population_adjusted", False)
         self.figure_title = self.input_config.get("figure_title", None)
         self.legend_pos = self.input_config.get("legend_pos", 0)
         self.boxplot = self.input_config.get("boxplot", None)
+        self.correlation = self.input_config.get("correlation", False)
+        self.plot_distribution = self.input_config.get("plot_distribution", "annual")
+        self.onroad = self.input_config.get("onroad", True)
+        self.ambient = self.input_config.get("ambient", True)
+        self.efficacy = self.input_config.get("efficacy", False)
+        self.plots = self.input_config.get("plots", True)
+        self.fac = 1 + sum([0.06]*math.ceil(len(self.pollutant_list)/2))
+        self.make_unique_dir()
+
+    def make_unique_dir(self):
+        for i in [OUTPUT_TABLE_DIR, OUTPUT_FIG_DIR]:
+            try:
+                i = "{}/{}".format(i, self.unique_name)
+                os.mkdir(i)
+            except:
+                pass
+
+
 
     def unwrap_dbs(self):
         db = []
@@ -33,7 +54,7 @@ class ConfigReader:
     def get_column_names(self):
         if self.plot_distribution == 'monthly':
             columns = ['year', 'month']
-        elif self.plot_distribution == 'yearly':
+        elif self.plot_distribution == 'annual':
             columns = ['year']
         columns = columns + self.pollutant_list
         return columns

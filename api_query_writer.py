@@ -13,6 +13,8 @@ class APIQUERYWriter:
         self.key = self.get_epa_key()
         self.path = AMBIENT_AIR_DATA
         self.state_codes, self.county_codes = self.get_state_county_codes()
+        self.plot_distribution = self.config.plot_distribution
+        self.plot_distribution = "daily" if self.plot_distribution in ["daily", "monthly"] else self.plot_distribution
 
     def get_epa_key(self):
         with open("D:/epa_key.txt", "r") as f:
@@ -21,9 +23,9 @@ class APIQUERYWriter:
 
     def get_filename(self, parameter, state_code, start_year, end_year, county_code=None):
         if county_code:
-            fname = "{}/daily_{}_{}_{}_{}_{}.csv".format(self.path, parameter, start_year, end_year, state_code, county_code)
+            fname = "{}/{}_{}_{}_{}_{}_{}.csv".format(self.path, self.plot_distribution, parameter, start_year, end_year, state_code, county_code)
         else:
-            fname = "{}/daily_{}_{}_{}_{}.csv".format(self.path, parameter, start_year, end_year, state_code)
+            fname = "{}/{}_{}_{}_{}_{}.csv".format(self.path, self.plot_distribution, parameter, start_year, end_year, state_code)
         return fname
 
     def get_state_county_codes(self):
@@ -60,8 +62,12 @@ class APIQUERYWriter:
         df = pd.DataFrame()
         for date in date_combinations:
             sdate, edate = date[0], date[1]
-            dict_data = QueryEPAData(self.key, parameter, state_code, sdate, edate, county_code=county_code).hit()
-            json_data = json.dumps(dict_data.get("Data"))
+            dict_data = QueryEPAData(self.key, parameter, state_code, sdate, edate, county_code=county_code,
+                                     plot_distribution=self.plot_distribution).hit()
+            data = dict_data.get("Data")
+            if not data:
+                logging.info("Failed to fetch data: {}".format(dict_data))
+            json_data = json.dumps(data)
             t = pd.read_json(json_data, dtype={'state_code': str, 'county_code': str, 'site_number':str})
             df = df.append(t)
             logging.info("API request completed for state/county: {}/{} | {} - {}".format(state_code, county_code,
@@ -73,20 +79,6 @@ class APIQUERYWriter:
     def get_key(self, x):
         return " ".join([i.capitalize() for i in x.split('_')])
 
-    def join_files(self, parameter):
-        df = pd.DataFrame()
-        for state_code in self.state_codes:
-            fname = "{}/daily_{}_2020_{}.csv".format(self.path, parameter, state_code)
-            print(fname)
-            try:
-                tf = pd.read_csv(fname, dtype={'state_code': str, 'county_code': str, 'site_number':str})
-                df = df.append(tf)
-            except:
-                pass
-        fname = "{}/daily_{}_2020.csv".format(self.path, parameter)
-        df.columns = [self.get_key(i) for i in df.columns]
-        df.to_csv(fname, index=False)
-
     def get_epa_start_end_year_combo(self, start_year, end_year):
         combos = []
         for year in range(start_year, end_year+1):
@@ -94,8 +86,6 @@ class APIQUERYWriter:
             edate = "{}{}{}".format(year, "12", "31")
             combos.append((sdate, edate))
         return combos
-
-
 
 
 if __name__=="__main__":
@@ -107,4 +97,4 @@ if __name__=="__main__":
         for p in parameters:
             query_obj = APIQUERYWriter()
             query_obj.write_data(p)
-            query_obj.join_files(p)
+            # query_obj.join_files(p)

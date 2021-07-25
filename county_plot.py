@@ -11,22 +11,23 @@ import seaborn as sns
 import math
 from get_cmap import GetCmap
 from scipy import stats
+from plot_utility import PlotUtility
 
 
-class CountyPlot:
-    def __init__(self, config, df_wrapper, title=None):
+class CountyPlot(PlotUtility):
+    def __init__(self, config, df_wrapper, title=None, pollutant_units=None):
+        print(config.fac, "?????????????????????")
+        super().__init__(fac=config.fac)
         self.df_wrapper = df_wrapper
         self.config = config
         self.title = "{} ({}-{})".format(title, config.start_year, config.end_year)
+        self.pollutant_units = pollutant_units
 
     def get_rows_and_cols_for_counties(self):
         pollutants = len(self.config.pollutant_list)
-        cols = 2
+        cols = 3
         rows = math.ceil(pollutants/cols)
         return rows, cols
-
-    def make_date(self, x):
-        return datetime.date(int(x['year']), int(x['month']), 1)
 
     def get_x_limit(self):
         xa, xb = self.config.start_year, self.config.end_year
@@ -69,15 +70,14 @@ class CountyPlot:
         rows, cols = self.get_rows_and_cols_for_counties()
         posCord = [(i, j) for i in range(0, rows) for j in range(0, cols)]
         plt.close()
-        plt.figure(figsize=(13, 12), dpi=600)
+        n_height = math.ceil(len(self.config.pollutant_list)/3)
+        plt.figure(figsize=(self.width*1.7, self.get_height(n_height)), dpi=600)
         gs = gridspec.GridSpec(rows, cols)
-        xa, xb = self.get_x_limit()
-        ya, yb = self.get_y_limit()
         cmap_obj = GetCmap(self.config)
 
         for index, pollutant in enumerate(self.config.pollutant_list):
             ax = plt.subplot(gs[posCord[index][0], posCord[index][1]])
-            ax.text(-0.07, 0.98, self.get_annot(index), transform=ax.transAxes, size=15, color='black')
+            ax.text(-0.07, 1.03, self.get_annot(index), transform=ax.transAxes, size=self.annot_size, color='black')
             for db_idx, db in enumerate(df_wrapper):
                 pollutant_df = df_wrapper.get(db)
                 pollutant_df['date'] = pollutant_df.apply(self.make_date, axis=1)
@@ -86,25 +86,28 @@ class CountyPlot:
                 y = pollutant_df[pollutant].tolist()
                 county_name = self.config.county[db_idx]
                 cmap = cmap_obj.get_county_cmap(county_name)
-                plt.plot(x, y, color=cmap, linewidth=0.8, linestyle='--')
-                plt.scatter(x, y, s=1, color=cmap)
-                plt.plot([], [], marker="o", ms=10, ls="", color=cmap, label=self.get_image_title(county_name))
+                plt.plot(x, y, color=cmap, linewidth=self.linewidth, linestyle='--')
+                plt.scatter(x, y, s=self.s, color=cmap)
+                plt.plot([], [], marker="o", ms=self.ms, ls="", color=cmap, label=self.get_image_title(county_name))
                 reg_x, reg_y = self.regression_line(x, y)
-                plt.plot(reg_x, reg_y, color=cmap, linewidth=0.6, linestyle="dotted")
-
+                plt.plot(reg_x, reg_y, color=cmap, linewidth=self.reg_line, linestyle="dotted")
+                xtic = list(map(lambda x:x.year, x))
+                plt.xticks(fontsize=self.xticks, rotation=20)
+                plt.yticks(fontsize=self.xticks)
             if index == self.config.legend_pos:
-                plt.legend(loc=self.config.legend_loc, frameon=False)
-            # plt.xlim(xa, xb)
-            # plt.ylim(ya - 0.5, yb + 0.5)
-            if index % 2 == 0:
-                plt.ylabel('Monthly emissions')
+                plt.legend(loc=self.config.legend_loc, frameon=False, prop={'size': self.legend})
+            flag = 0
+            if self.pollutant_units:
+                flag = 1
+            ylabel, plot_distribution = "{} emissions ({})", self.config.plot_distribution.capitalize()
+            ylabel = ylabel.format(plot_distribution, "grams") if flag != 1 else ylabel.format(plot_distribution, self.pollutant_units[pollutant])
+            plt.ylabel(ylabel, fontsize=self.xticks)
             plt.title(pollutant, fontsize=18)
         plt.tight_layout()
         if self.title:
             plt.suptitle(self.title, fontsize=22, y=1.05)
             # plt.subplots_adjust(top=0.85)
-        figname = self.title.replace(" ", "_")+".png"
-        print(figname)
-        # plt.savefig(OUTPUT_FIG_DIR + "/county_wise_" + self.config.get_imagename(), bbox_inches='tight')
-        plt.savefig(OUTPUT_FIG_DIR + "/" + figname, bbox_inches='tight')
+        figname = self.title.replace(" ", "_")+"_pol.png"
+        path = "{}/{}".format(OUTPUT_FIG_DIR, self.config.unique_name)
+        plt.savefig(path + "/" + figname, bbox_inches='tight')
         logging.info("Figure is saved.")

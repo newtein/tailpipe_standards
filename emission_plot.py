@@ -8,10 +8,12 @@ import pandas as pd
 import numpy as np
 from geo_class import GeoClass
 import seaborn as sns
+from plot_utility import PlotUtility
 
 
-class EmissionPlot:
+class EmissionPlot(PlotUtility):
     def __init__(self, config, df_wrapper, title=None):
+        super().__init__()
         self.df_wrapper = df_wrapper
         self.config = config
         self.title = title
@@ -20,9 +22,6 @@ class EmissionPlot:
         cities = len(self.df_wrapper)
         rows, cols = cities, 1
         return rows, cols
-
-    def make_date(self, x):
-        return datetime.date(int(x['year']), int(x['month']), 1)
 
     def get_x_limit(self):
         xa, xb = self.config.start_year, self.config.end_year
@@ -59,7 +58,8 @@ class EmissionPlot:
         rows, cols = self.get_rows_and_cols_for_pollutants()
         posCord = [(i, j) for i in range(0, rows) for j in range(0, cols)]
         plt.close()
-        plt.figure(figsize=(9, 8), dpi=600)
+        plt.clf()
+        plt.figure(figsize=(self.width, self.get_height(len(self.config.county))), dpi=600)
         gs = gridspec.GridSpec(rows, cols)
         xa, xb = self.get_x_limit()
         ya, yb = self.get_y_limit()
@@ -84,6 +84,8 @@ class EmissionPlot:
             # print(county, index, self.config.county, df_wrapper.keys())
             plt.title(self.config.county[index], fontsize=18)
         plt.tight_layout()
-        plt.savefig(OUTPUT_FIG_DIR+"/"+self.config.get_imagename(), bbox_inches='tight')
+        path = "{}/{}".format(OUTPUT_FIG_DIR, self.config.unique_name)
+        figname = self.title.replace(" ", "_")+"_countywise.png"
+        plt.savefig(path+"/"+figname, bbox_inches='tight')
         logging.info("Figure is saved.")
 

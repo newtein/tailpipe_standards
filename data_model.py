@@ -21,30 +21,43 @@ class DataModel:
             if year not in data:
                 data[year] = OrderedDict()
             for month in range(1, 13):
-                data[year][month] = {i:np.nan for i in self.config.pollutant_list}
+                if self.config.plot_distribution != 'annual':
+                    data[year][month] = {i:np.nan for i in self.config.pollutant_list}
         return data
 
     def populate_dataframe(self, data):
         columns = self.config.get_column_names()
         list_of_dicts = []
         for year in data:
-            for month in data[year]:
+            if self.config.plot_distribution == 'monthly':
+                for month in data[year]:
+                    temp = {
+                            "year": year,
+                            "month": month
+                        }
+                    temp.update(data[year][month])
+                    list_of_dicts.append(temp)
+            elif self.config.plot_distribution == 'annual':
                 temp = {
-                        "year": year,
-                        "month": month
-                    }
-                temp.update(data[year][month])
+                    "year": year
+                }
+                temp.update(data[year])
                 list_of_dicts.append(temp)
-        df = pd.DataFrame(columns = columns, data = list_of_dicts)
+        df = pd.DataFrame(columns=columns, data=list_of_dicts)
         return df
 
     def update_to_df(self, emission_results):
         data = self.init_data()
         for pollutant in emission_results:
             for emission_info in emission_results[pollutant]:
-                year, month = emission_info.get("yearID"), emission_info.get("monthID")
-                emission = emission_info.get('emission')
-                data[year][month][pollutant] = emission
+                if self.config.plot_distribution in ["monthly"]:
+                    year, month = emission_info.get("yearID"), emission_info.get("monthID")
+                    emission = emission_info.get('emission')
+                    data[year][month][pollutant] = emission
+                elif self.config.plot_distribution == 'annual':
+                    year = emission_info.get("yearID")
+                    emission = emission_info.get('emission')
+                    data[year][pollutant] = emission
         df = self.populate_dataframe(data)
         return df
 
@@ -93,6 +106,21 @@ class DataModel:
                 df[pollutant] = t
             adjusted_df_wrapper[county_name] = df
         return adjusted_df_wrapper
+
+    def merge_counties(self, dfs):
+        merged_df = pd.DataFrame()
+        for key in dfs:
+            df = dfs.get(key)
+            county, state = split_df_key(key)
+            df['county'] = county
+            df['state'] = state
+            merged_df = merged_df.append(df)
+            # if merged_df.empty:
+            #     merged_df = merged_df.append(df)
+            # else:
+            #     merged_df = merged_df.merge(merged_df, on='pollutant', how='outer')
+        return merged_df
+
 
 
 

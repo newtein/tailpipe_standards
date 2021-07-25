@@ -8,6 +8,7 @@ class USPopulation:
         self.start_year = start_year
         self.end_year = end_year
         self.df = pd.read_csv(CENSUS_DATA_PATH)
+        self.df['county_name'] = self.df['county_name'].apply(lambda x: x.lower())
 
     def init_lookup(self):
         return {i: None for i in range(self.start_year, self.end_year+1)}
@@ -26,6 +27,7 @@ class USPopulation:
             print(df)
 
     def get(self, county_name, state_name):
+        county_name = county_name.lower()
         f1 = (self.df['county_name'] == county_name)
         f2 = (self.df['state_name'] == state_name)
         df = copy(self.df[f1 & f2])

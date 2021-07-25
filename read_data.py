@@ -28,7 +28,8 @@ class ReadData:
             "RH": "62201",
             "Pressue": "68108"
         }
-        self.agg_prototype = {'Aqi': 'first',
+        # {'Aqi': 'first','Method Code': 'first',  'First Max Hour': 'first',}
+        self.agg_prototype = {
                              'Arithmetic Mean': 'first',
                              'Cbsa': 'first',
                              'Cbsa Code': 'first',
@@ -38,13 +39,13 @@ class ReadData:
                              'Date Of Last Change': 'first',
                              'Datum': 'first',
                              'Event Type': 'first',
-                             'First Max Hour': 'first',
+
                              'First Max Value': 'first',
                              'Latitude': 'first',
                              'Local Site Name': 'first',
                              'Longitude': 'first',
                              'Method': 'first',
-                             'Method Code': 'first',
+
                              'Observation Count': 'first',
                              'Observation Percent': 'first',
                              'Parameter': 'first',
@@ -82,15 +83,19 @@ class ReadData:
         str_cols = ['state_code', 'county_code', 'site_number']
         str_dict = {i: str for i in str_cols}
         df = pd.read_csv(filename, dtype=str_dict)
-        # , format='%d-%m-%Y'
-        df['date_local'] = pd.to_datetime(df['date_local'], format='%Y-%m-%d')
+        df['id'] = df.apply(self.create_id, axis=1)
         sample_duration = ['24-HR BLK AVG', '24 HOUR']
         # df = df[df['Sample Duration'].isin(sample_duration)]
-        self.agg_prototype.update({'first_max_value': 'max', 'arithmetic_mean': 'max', 'aqi': 'max'})
+        if self.observation_type == 'daily':
+            df['date_local'] = pd.to_datetime(df['date_local'], format='%Y-%m-%d')
+            self.agg_prototype.update({'first_max_value': 'max', 'arithmetic_mean': 'max', 'aqi': 'max'})
+            df = df.groupby(['id', 'date_local']).agg(self.agg_prototype).reset_index()
+            df = df.sort_values(by='date_local')
+        elif self.observation_type == 'annual':
+            self.agg_prototype.update({'fourth_max_value': 'max', 'arithmetic_mean': 'max'})
+            df = df.groupby(['id', 'year']).agg(self.agg_prototype).reset_index()
+            df = df.sort_values(by='year')
         # self.agg_prototype.pop('Poc')
-        df['id'] = df.apply(self.create_id, axis=1)
-        df = df.groupby(['id', 'date_local']).agg(self.agg_prototype).reset_index()
-        df = df.sort_values(by='date_local')
         # df = df[df['Sample Duration']=='24-HR BLK AVG']
         return df
 

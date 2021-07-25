@@ -19,8 +19,8 @@ class GetCmap:
         carb_cmaps = self.split_cmap(carb_cmap, n)
         epa_cmaps = self.split_cmap(epa_cmap, n)
         if county_name in self.config.epa_county:
-            index = self.config.epa_county.index(county_name)+1
+            index = self.config.epa_county.index(county_name)
             return epa_cmaps[index]
         elif county_name in self.config.carb_county:
-            index = self.config.carb_county.index(county_name)+1
+            index = self.config.carb_county.index(county_name)
             return carb_cmaps[index]
